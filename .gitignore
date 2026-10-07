@@ -40,7 +40,7 @@ htmlcov/
 
 # Local data
 data/
-models/
+/models/
 
 # Build artifacts
 dist/
