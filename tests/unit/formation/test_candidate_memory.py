@@ -4,6 +4,7 @@ import pytest
 
 from memory_engine.formation.candidates import CandidateMemory
 from memory_engine.kernel.identity.ids import generate_event_id
+from memory_engine.kernel.models.memory_type import MemoryType
 
 
 @pytest.fixture
@@ -19,7 +20,7 @@ def test_candidate_memory_uses_default_values(source_event_id):
 
     assert candidate.content == "Learning PyTorch"
     assert candidate.normalized_content == "learning pytorch"
-    assert candidate.memory_type == "semantic"
+    assert candidate.memory_type == MemoryType.SEMANTIC
     assert candidate.importance == 0.5
     assert candidate.confidence == 0.5
     assert candidate.created_at.tzinfo is not None
@@ -172,4 +173,35 @@ def test_invalid_source_event_id_is_rejected():
             source_event_ids=("not-a-uuid",),
         )
 
-    
+def test_supported_memory_types():
+    from memory_engine.kernel.models.memory_type import MemoryType
+
+    assert MemoryType.EPISODIC.value == "episodic"
+    assert MemoryType.SEMANTIC.value == "semantic"
+    assert MemoryType.PROCEDURAL.value == "procedural"
+    assert MemoryType.PREFERENCE.value == "preference"
+    assert MemoryType.TEMPORAL.value == "temporal"
+    assert MemoryType.WORKING.value == "working"
+
+
+def test_invalid_memory_type_is_rejected(source_event_id):
+    from memory_engine.kernel.models.memory_type import MemoryType
+
+    with pytest.raises(TypeError, match="MemoryType"):
+        CandidateMemory(
+            content="Learning PyTorch",
+            source_event_ids=(source_event_id,),
+            memory_type="random_type",
+        )
+
+
+def test_explicit_memory_type_is_supported(source_event_id):
+    from memory_engine.kernel.models.memory_type import MemoryType
+
+    candidate = CandidateMemory(
+        content="I prefer practical examples",
+        source_event_ids=(source_event_id,),
+        memory_type=MemoryType.PREFERENCE,
+    )
+
+    assert candidate.memory_type is MemoryType.PREFERENCE

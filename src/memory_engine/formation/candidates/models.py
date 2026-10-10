@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 from types import MappingProxyType
 from typing import Any, Mapping
 from uuid import UUID
+from memory_engine.kernel.models.memory_type import MemoryType
 
 from memory_engine.kernel.identity.ids import (
     CandidateId,
@@ -20,7 +21,7 @@ class CandidateMemory:
         default_factory=generate_candidate_id
     )
     normalized_content: str = ""
-    memory_type: str = "semantic"
+    memory_type: MemoryType = MemoryType.SEMANTIC
     importance: float = 0.5
     confidence: float = 0.5
     created_at: datetime = field(
@@ -52,10 +53,10 @@ class CandidateMemory:
         if len(set(self.source_event_ids)) != len(self.source_event_ids):
             raise ValueError("Source event IDs must be unique")
 
-        if not isinstance(self.memory_type, str) or not self.memory_type.strip():
-            raise ValueError("memory_type cannot be empty")
+        if not isinstance(self.memory_type, MemoryType):
+            raise TypeError("memory_type must be a MemoryType")
 
-        object.__setattr__(self, "memory_type", self.memory_type.strip())
+       
 
         normalized = self.normalized_content.strip()
 
