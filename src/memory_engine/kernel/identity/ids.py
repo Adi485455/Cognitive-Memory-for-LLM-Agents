@@ -9,6 +9,8 @@ EvidenceId = NewType("EvidenceId", UUID)
 EntityId = NewType("EntityId", UUID)
 RelationshipId = NewType("RelationshipId", UUID)
 EventId = NewType("EventId", UUID)
+CandidateId = NewType("CandidateId", UUID)
+
 
 
 def generate_memory_id() -> MemoryId:
@@ -36,3 +38,6 @@ def generate_relationship_id() -> RelationshipId:
 
 def generate_event_id() -> EventId:
     return EventId(uuid4())
+
+def generate_candidate_id() -> CandidateId:
+    return CandidateId(uuid4())

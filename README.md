@@ -1308,16 +1308,31 @@ The initial Phase 2 components have been implemented and tested.
     - Provides read-only snapshots and clear operations.
     - Protects shared state using a thread lock.
 
+5. Candidate Memory Model
+
+    - Represents proposed memories separately from canonical memories.
+    - Assigns a unique candidate identifier.
+    - Stores proposed content and normalized content.
+    - Tracks source event IDs for provenance.
+    - Maintains separate importance and confidence scores.
+    - Records creation timestamps and metadata.
+    - Validates required fields, source event IDs, and score ranges.
+
+    NOTE: This component currently defines the candidate data model.
+    Automatic candidate extraction, evaluation, matching, and promotion
+    into canonical memory have not yet been implemented.
+
     NOTE: Working Memory currently uses in-memory Python data
     structures. Persistence across process restarts is not implemented.
 
 TESTING
 -------
 
-The current test suite contains 109 passing tests.
+The current test suite contains 129 passing tests.
 
 Tests cover the foundational models and contracts, ingestion,
-episodes, messages, episode management, and Working Memory.
+episodes, messages, episode management, Working Memory, and the
+Candidate Memory model.
 
 IMPLEMENTATION LIMITATIONS
 --------------------------
@@ -1341,10 +1356,13 @@ end-to-end cognitive memory system.
 NEXT OBJECTIVE
 --------------
 
-Continue Phase 2 by implementing Candidate Memory formation and
-the decision pipeline, while preserving provenance, temporal context,
-explicit separation between decision-making and canonical mutation,
-and the architectural contracts established in Phase 1.
+Continue Phase 2 by implementing Candidate Memory formation from
+messages, followed by existing-memory matching and the decision
+pipeline.
+
+Preserve provenance, temporal context, the separation between
+decision-making and canonical mutation, and the architectural
+contracts established in Phase 1.
 
 
 ======================================================================
