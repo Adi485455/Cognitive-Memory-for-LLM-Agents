@@ -1253,20 +1253,101 @@ CURRENT STATUS
 
 STATUS: IN DEVELOPMENT
 
-Current phase:
+CURRENT PHASE:
 
-    PHASE 1 - MEMORY KERNEL & FOUNDATION
+    PHASE 2 - MEMORY FORMATION
 
-The project is now beginning implementation of the foundational
-architecture.
+FOUNDATION
+----------
 
-The immediate objective is to establish the core semantic contracts,
-canonical memory model, evidence/provenance model, identity, lifecycle,
-temporal information, versioning, and core interfaces.
+Phase 1 has established the foundational models, identity system,
+validation rules, and storage interfaces required by the architecture.
 
-Detailed implementation information will be added to this README as
-each component is actually built, tested, and committed.
+The foundation defines the core contracts for canonical memories,
+evidence, provenance, temporal information, lifecycle management,
+versioning, entities, and relationships.
 
+MEMORY FORMATION - IMPLEMENTED COMPONENTS
+----------------------------------------
+
+The initial Phase 2 components have been implemented and tested.
+
+1. Memory Event Ingestion
+
+    - Creates immutable MemoryEvent objects.
+    - Records the event source and received timestamp.
+    - Supports optional idempotency keys and metadata.
+    - Validates required fields and timezone-aware timestamps.
+
+    NOTE: Idempotency keys are recorded, but persistent event
+    deduplication has not yet been implemented.
+
+2. Episodes and Messages
+
+    - Represents episodes and individual messages.
+    - Assigns unique identifiers.
+    - Records timestamps, message sequence numbers, and metadata.
+    - Validates the core model invariants.
+
+3. Episode Manager
+
+    - Creates and manages episodes.
+    - Associates ingested events with messages.
+    - Maintains message ordering within episodes.
+    - Provides episode, message, and event-to-message lookups.
+    - Protects shared in-memory state using a thread lock.
+
+4. Working Memory
+
+    - Maintains a capacity-limited collection of messages.
+    - Supports insertion, retrieval, updating, and removal.
+    - Tracks message priority and working-memory status.
+    - Supports promotion and demotion.
+    - Compresses memory by removing lower-priority eligible entries.
+    - Protects promoted entries during compression.
+    - Provides read-only snapshots and clear operations.
+    - Protects shared state using a thread lock.
+
+    NOTE: Working Memory currently uses in-memory Python data
+    structures. Persistence across process restarts is not implemented.
+
+TESTING
+-------
+
+The current test suite contains 109 passing tests.
+
+Tests cover the foundational models and contracts, ingestion,
+episodes, messages, episode management, and Working Memory.
+
+IMPLEMENTATION LIMITATIONS
+--------------------------
+
+The following components remain under development:
+
+    - Candidate Memory formation
+    - Entity and temporal extraction
+    - Existing Memory Matching
+    - JEV decision engine
+    - Memory Manager and canonical memory mutation
+    - Persistent vector and graph storage
+    - Hybrid retrieval
+    - Dream Engine and memory consolidation
+    - API integration, deployment, and benchmarking
+
+The current implementation establishes the foundation and early
+formation components. It does not yet constitute a complete
+end-to-end cognitive memory system.
+
+NEXT OBJECTIVE
+--------------
+
+Continue Phase 2 by implementing Candidate Memory formation and
+the decision pipeline, while preserving provenance, temporal context,
+explicit separation between decision-making and canonical mutation,
+and the architectural contracts established in Phase 1.
+
+
+======================================================================
 
 ======================================================================
 
