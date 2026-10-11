@@ -164,3 +164,58 @@ def test_form_candidate_uses_semantic_fallback(setup):
         "default_fallback"
         in candidate.metadata["classification_rules"]
     )
+def test_form_candidate_assigns_importance_score(setup):
+    formation, message, _ = setup
+
+    event = IngestionService().ingest(
+        source="chat",
+        content="I want to learn machine learning.",
+    )
+    goal_message = EpisodeManager().add_event(
+        event,
+        speaker="user",
+    )
+
+    candidate = formation.form_candidate(goal_message)
+
+    assert candidate.importance == 0.80
+    assert "long_term_goal" in candidate.metadata["importance_rules"]
+
+
+def test_form_candidate_preserves_default_confidence(setup):
+    formation, _, _ = setup
+
+    event = IngestionService().ingest(
+        source="chat",
+        content="I want to learn machine learning.",
+    )
+    goal_message = EpisodeManager().add_event(
+        event,
+        speaker="user",
+    )
+
+    candidate = formation.form_candidate(goal_message)
+
+    assert candidate.importance == 0.80
+    assert candidate.confidence == 0.5
+
+
+def test_form_candidate_records_importance_rules(setup):
+    formation, _, _ = setup
+
+    event = IngestionService().ingest(
+        source="chat",
+        content="I prefer Python over Java.",
+    )
+    preference_message = EpisodeManager().add_event(
+        event,
+        speaker="user",
+    )
+
+    candidate = formation.form_candidate(preference_message)
+
+    assert candidate.importance == 0.75
+    assert candidate.metadata["importance_rules"] == (
+        "explicit_preference",
+    )
+    
