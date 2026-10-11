@@ -4,6 +4,10 @@ from memory_engine.formation.candidates import CandidateFormationService
 from memory_engine.formation.episodes import EpisodeManager
 from memory_engine.formation.ingestion import IngestionService
 from memory_engine.kernel.models.message import Message
+from memory_engine.formation.candidates.formation import (
+    CandidateFormationService,
+)
+from memory_engine.kernel.models.memory_type import MemoryType
 
 
 @pytest.fixture
@@ -103,3 +107,60 @@ def test_non_string_event_id_is_rejected(setup):
 
     with pytest.raises(ValueError, match="string event_id"):
         formation.form_candidate(invalid_message)
+
+
+def test_form_candidate_classifies_preference_message(setup):
+    formation, message, _ = setup
+
+    # Create a message with preference-related content.
+    event = IngestionService().ingest(
+        source="chat",
+        content="I prefer Python over Java.",
+    )
+    preference_message = EpisodeManager().add_event(
+        event,
+        speaker="user",
+    )
+
+    candidate = formation.form_candidate(preference_message)
+
+    assert candidate.memory_type == MemoryType.PREFERENCE
+    assert candidate.metadata["classification_confidence"] == 0.90
+    assert (
+        "preference_expression"
+        in candidate.metadata["classification_rules"]
+    )
+
+
+def test_form_candidate_keeps_classification_confidence_separate(setup):
+    formation, _, _ = setup
+
+    event = IngestionService().ingest(
+        source="chat",
+        content="I prefer Python over Java.",
+    )
+    message = EpisodeManager().add_event(event, speaker="user")
+
+    candidate = formation.form_candidate(message)
+
+    assert candidate.metadata["classification_confidence"] == 0.90
+    assert candidate.confidence == 0.5
+
+
+def test_form_candidate_uses_semantic_fallback(setup):
+    formation, _, _ = setup
+
+    event = IngestionService().ingest(
+        source="chat",
+        content="Python supports multiple programming paradigms.",
+    )
+    message = EpisodeManager().add_event(event, speaker="user")
+
+    candidate = formation.form_candidate(message)
+
+    assert candidate.memory_type == MemoryType.SEMANTIC
+    assert candidate.metadata["classification_confidence"] == 0.50
+    assert (
+        "default_fallback"
+        in candidate.metadata["classification_rules"]
+    )

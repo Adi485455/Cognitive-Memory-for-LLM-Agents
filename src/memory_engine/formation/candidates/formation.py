@@ -1,5 +1,8 @@
 from uuid import UUID
 
+from memory_engine.formation.candidates.classification import (
+    MemoryTypeClassifier,
+)
 from memory_engine.formation.candidates.models import CandidateMemory
 from memory_engine.kernel.identity.ids import EventId
 from memory_engine.kernel.models.message import Message
@@ -7,6 +10,12 @@ from memory_engine.kernel.models.message import Message
 
 class CandidateFormationService:
     """Creates candidate memories from individual messages."""
+
+    def __init__(
+        self,
+        classifier: MemoryTypeClassifier | None = None,
+    ) -> None:
+        self._classifier = classifier or MemoryTypeClassifier()
 
     def form_candidate(self, message: Message) -> CandidateMemory:
         if not isinstance(message, Message):
@@ -26,13 +35,18 @@ class CandidateFormationService:
                 "Message metadata contains an invalid event_id"
             ) from exc
 
+        classification = self._classifier.classify(message.content)
+
         return CandidateMemory(
             content=message.content,
             source_event_ids=(event_id,),
+            memory_type=classification.memory_type,
             created_at=message.created_at,
             metadata={
                 "source_message_id": str(message.message_id),
                 "source_episode_id": str(message.episode_id),
                 "source_speaker": message.speaker,
+                "classification_confidence": classification.confidence,
+                "classification_rules": classification.matched_rules,
             },
         )
