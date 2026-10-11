@@ -144,7 +144,8 @@ def test_form_candidate_keeps_classification_confidence_separate(setup):
     candidate = formation.form_candidate(message)
 
     assert candidate.metadata["classification_confidence"] == 0.90
-    assert candidate.confidence == 0.5
+    assert candidate.confidence == 0.70
+    assert candidate.importance == 0.75
 
 
 def test_form_candidate_uses_semantic_fallback(setup):
@@ -218,4 +219,56 @@ def test_form_candidate_records_importance_rules(setup):
     assert candidate.metadata["importance_rules"] == (
         "explicit_preference",
     )
-    
+
+def test_form_candidate_assigns_confidence_score(setup):
+    formation, _, _ = setup
+
+    event = IngestionService().ingest(
+        source="chat",
+        content="I completed a machine learning project.",
+    )
+    message = EpisodeManager().add_event(event, speaker="user")
+
+    candidate = formation.form_candidate(message)
+
+    assert candidate.confidence == 0.75
+    assert (
+        "explicit_personal_experience"
+        in candidate.metadata["confidence_rules"]
+    )
+
+
+def test_form_candidate_records_uncertainty(setup):
+    formation, _, _ = setup
+
+    event = IngestionService().ingest(
+        source="chat",
+        content="I think Python is useful.",
+    )
+    message = EpisodeManager().add_event(event, speaker="user")
+
+    candidate = formation.form_candidate(message)
+
+    assert candidate.confidence == 0.35
+    assert "explicit_uncertainty" in candidate.metadata["confidence_rules"]
+
+
+def test_form_candidate_keeps_scoring_dimensions_separate(setup):
+    formation, _, _ = setup
+
+    event = IngestionService().ingest(
+        source="chat",
+        content="I prefer Python over Java.",
+    )
+    message = EpisodeManager().add_event(event, speaker="user")
+
+    candidate = formation.form_candidate(message)
+
+    assert candidate.memory_type == MemoryType.PREFERENCE
+    assert candidate.importance == 0.75
+    assert candidate.confidence == 0.70
+    assert candidate.metadata["classification_confidence"] == 0.90
+    assert (
+        candidate.metadata["confidence_rules"]
+        == ("explicit_preference",)
+    )
