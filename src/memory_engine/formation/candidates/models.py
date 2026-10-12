@@ -7,6 +7,7 @@ from memory_engine.kernel.models.memory_type import MemoryType
 
 from memory_engine.kernel.identity.ids import (
     CandidateId,
+    EvidenceId,
     EventId,
     generate_candidate_id,
 )
@@ -16,6 +17,7 @@ from memory_engine.kernel.identity.ids import (
 class CandidateMemory:
     content: str
     source_event_ids: tuple[EventId, ...]
+    source_evidence_ids: tuple[EvidenceId, ...] = ()
 
     candidate_id: CandidateId = field(
         default_factory=generate_candidate_id
@@ -49,6 +51,18 @@ class CandidateMemory:
             raise ValueError(
                 "A candidate must reference at least one source event"
             )
+        if not isinstance(self.source_evidence_ids, tuple):
+            raise TypeError("source_evidence_ids must be a tuple")
+        if any(
+            not isinstance(evidence_id, UUID)
+            for evidence_id in self.source_evidence_ids
+        ):
+                raise TypeError(
+                    "Each source evidence ID must be a valid EvidenceId"
+                )
+        if len(set(self.source_evidence_ids)) != len(self.source_evidence_ids):
+            raise ValueError("Source evidence IDs must be unique")
+        
 
         if len(set(self.source_event_ids)) != len(self.source_event_ids):
             raise ValueError("Source event IDs must be unique")

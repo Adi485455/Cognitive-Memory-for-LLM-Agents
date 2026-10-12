@@ -6,6 +6,7 @@ from memory_engine.formation.candidates.classification import (
 from memory_engine.formation.candidates.confidence import (
     CandidateConfidenceScorer,
 )
+from memory_engine.kernel.identity.ids import EvidenceId, EventId
 from memory_engine.formation.candidates.importance import (
     CandidateImportanceScorer,
 )
@@ -31,7 +32,18 @@ class CandidateFormationService:
             confidence_scorer or CandidateConfidenceScorer()
         )
 
-    def form_candidate(self, message: Message) -> CandidateMemory:
+    def form_candidate(self,message: Message,*,source_evidence_ids: tuple[EvidenceId, ...] = (),) -> CandidateMemory:
+        if not isinstance(source_evidence_ids, tuple):
+            raise TypeError("source_evidence_ids must be a tuple")
+        if any(
+            not isinstance(evidence_id, UUID)
+            for evidence_id in source_evidence_ids
+        ):
+                raise TypeError(
+                    "Each source evidence ID must be a valid EvidenceId"
+                )
+        if len(set(source_evidence_ids)) != len(source_evidence_ids):
+            raise ValueError("Source evidence IDs must be unique")
         if not isinstance(message, Message):
             raise TypeError("message must be a Message instance")
 
@@ -65,6 +77,7 @@ class CandidateFormationService:
             memory_type=classification.memory_type,
             importance=importance_result.score,
             confidence=confidence_result.score,
+            source_evidence_ids=source_evidence_ids,
             created_at=message.created_at,
             metadata={
                 "source_message_id": str(message.message_id),

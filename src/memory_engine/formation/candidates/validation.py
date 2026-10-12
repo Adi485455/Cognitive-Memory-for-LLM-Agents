@@ -2,6 +2,7 @@ from dataclasses import dataclass
 
 from memory_engine.formation.candidates.models import CandidateMemory
 from memory_engine.kernel.models.memory_type import MemoryType
+from uuid import UUID
 
 
 @dataclass(frozen=True, slots=True)
@@ -53,6 +54,15 @@ class CandidateValidator:
 
         if not candidate.source_event_ids:
             errors.append("at least one source event is required")
+        if not isinstance(candidate.source_evidence_ids, tuple):
+            errors.append("source_evidence_ids must be a tuple")
+
+        if any(
+            not isinstance(evidence_id, UUID)
+            for evidence_id in candidate.source_evidence_ids
+        ):
+            errors.append("source_evidence_ids must contain valid EvidenceIds")
+            
 
         if not isinstance(candidate.memory_type, MemoryType):
             errors.append("memory_type must be a valid MemoryType")
