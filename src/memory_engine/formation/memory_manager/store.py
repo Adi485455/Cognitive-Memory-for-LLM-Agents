@@ -3,6 +3,7 @@ from threading import RLock
 from memory_engine.kernel.identity.ids import MemoryId
 from memory_engine.kernel.interfaces.memory_store import MemoryStore
 from memory_engine.kernel.models.memory import Memory
+from memory_engine.kernel.identity.ids import EvidenceId
 
 
 class InMemoryMemoryStore(MemoryStore):
@@ -33,3 +34,17 @@ class InMemoryMemoryStore(MemoryStore):
     def delete(self, memory_id: MemoryId) -> None:
         with self._lock:
             self._memories.pop(memory_id, None)
+    def find_by_evidence_ids(self,evidence_ids: tuple[EvidenceId, ...],) -> tuple[Memory, ...]:
+        if not evidence_ids:
+            return ()
+
+        requested_ids = set(evidence_ids)
+
+        with self._lock:
+            return tuple(
+                memory
+                for memory in self._memories.values()
+                if requested_ids.intersection(
+                    memory.provenance.evidence_ids
+            )
+        )

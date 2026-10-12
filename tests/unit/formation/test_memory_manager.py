@@ -125,3 +125,63 @@ def test_naive_timestamp_is_rejected(manager, candidate):
             decision=CandidateDecisionType.STORE,
             now=datetime(2026, 10, 12, 10, 0),
         )
+def test_storing_same_candidate_twice_does_not_create_duplicate(
+    manager,
+    store,
+    candidate,
+):
+    first_memory = manager.store_candidate(
+        candidate,
+        decision=CandidateDecisionType.STORE,
+    )
+
+    second_memory = manager.store_candidate(
+        candidate,
+        decision=CandidateDecisionType.STORE,
+    )
+
+    assert second_memory.memory_id == first_memory.memory_id
+
+def test_same_content_with_different_evidence_creates_new_memory(
+    manager,
+    candidate,
+):
+    first_memory = manager.store_candidate(
+        candidate,
+        decision=CandidateDecisionType.STORE,
+    )
+
+    different_evidence_candidate = CandidateMemory(
+        content=candidate.content,
+        source_event_ids=candidate.source_event_ids,
+        source_evidence_ids=(EvidenceId(uuid4()),),
+        confidence=candidate.confidence,
+        importance=candidate.importance,
+        metadata=candidate.metadata,
+    )
+
+    second_memory = manager.store_candidate(
+        different_evidence_candidate,
+        decision=CandidateDecisionType.STORE,
+    )
+
+    assert second_memory.memory_id != first_memory.memory_id
+
+
+def test_same_candidate_returns_existing_memory(
+    manager,
+    candidate,
+):
+    first_memory = manager.store_candidate(
+        candidate,
+        decision=CandidateDecisionType.STORE,
+    )
+
+    second_memory = manager.store_candidate(
+        candidate,
+        decision=CandidateDecisionType.STORE,
+    )
+
+    assert second_memory == first_memory
+
+        
